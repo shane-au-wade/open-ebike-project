@@ -1,7 +1,5 @@
-
 // task variables for multithreading
 TaskHandle_t Task1;
-TaskHandle_t Task2;
 
 #define LED 2
 
@@ -192,7 +190,7 @@ void Task1code( void * pvParameters ){
         inactiveCount++;
       }
       
-      if(inactiveCount >= 150)
+      if(inactiveCount >= 130)
       {
         revs = 0.f;
         seconds = 1.f;
@@ -211,7 +209,8 @@ void Task1code( void * pvParameters ){
         
        //pwmVal = (int)(466.6667*rps + 833.3334);
        //pwmVal = (int)(178.78*rps - 41.8);
-       pwmVal = (int)(65.56*rps + 71.44);
+       
+       pwmVal = (int)(130*rps + 60);
     
     //  Serial.print("revs: ");
     //  Serial.print(revs);
