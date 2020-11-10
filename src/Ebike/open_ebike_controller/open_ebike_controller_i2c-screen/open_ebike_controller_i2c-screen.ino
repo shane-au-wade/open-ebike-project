@@ -189,17 +189,7 @@ void setup() {
     //screen stup
     while (!Serial2) {;} // infinite loop until Serial2 is initialized
     UART.setSerialPort(&Serial2);
-      
-    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
-      Serial.println(F("SSD1306 allocation failed"));
-      for(;;); // Don't proceed, loop forever
-    }
-    Serial.println( display.height());
-    Serial.println( display.width());
-    display.setTextColor(SSD1306_WHITE, SSD1306_BLACK);
-    drawStartAnimation();
-    
+     
   //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 0
   xTaskCreatePinnedToCore (
     sensorInputUpdates,   /* Task function. */
@@ -214,7 +204,7 @@ void setup() {
   xTaskCreatePinnedToCore (
     screenUpdates,   /* Task function. */
     "screenUpdates",     /* name of task. */
-    3072,       /* Stack size of task */
+    1300,       /* Stack size of task */
     NULL,        /* parameter of the task */
     1,           /* priority of the task */
     &screenTask,      /* Task handle to keep track of created task */
@@ -329,6 +319,16 @@ void screenUpdates( void * pvParameters ){
   Serial.print("Screen Update Task running on core ");
   Serial.println(xPortGetCoreID());
 
+  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
+      Serial.println(F("SSD1306 allocation failed"));
+      for(;;); // Don't proceed, loop forever
+    }
+    Serial.println( display.height());
+    Serial.println( display.width());
+    display.setTextColor(SSD1306_WHITE, SSD1306_BLACK);
+    drawStartAnimation();
+
   // draw mph
   display.setTextSize(1);
   display.setCursor(108,32);
@@ -392,7 +392,7 @@ void screenUpdates( void * pvParameters ){
             // then draw that many throttleCursors in a row
              //Serial.println(pwmVal);
             currIndex = (int)(pwmVal*0.787401)-100;
-            Serial.println(currIndex);
+            //Serial.println(currIndex);
 
             if(currIndex - prevIndex > 0) {
               //draw from prevIndex to currIndex the normal throttle cursor
@@ -418,7 +418,14 @@ void screenUpdates( void * pvParameters ){
             prevIndex = currIndex;
 
             //calculate speed 
-            _speed = UART.data.rpm/10 * 60 * 0.00138193;
+            // Motor RPM x Pi x (1 / meters in a mile or km) x Wheel diameter x (motor pulley / wheelpulley) 
+            //data.tachometerAbs
+            //_speed = UART.data.rpm/10 * 60 * 0.00138193;
+            //wheel diameter = 28.25in
+            _speed = (UART.data.rpm/10)*(3.142 * 28.25)*0.00001578282;
+            if(_speed > 99) {
+              _speed = 99;
+            }
 
             // draw voltage
             display.setTextSize(2);
