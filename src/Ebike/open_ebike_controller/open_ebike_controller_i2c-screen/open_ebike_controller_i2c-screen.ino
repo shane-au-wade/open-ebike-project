@@ -194,7 +194,7 @@ void setup() {
   xTaskCreatePinnedToCore (
     sensorInputUpdates,   /* Task function. */
     "sensorInputUpdates",     /* name of task. */
-    1024,       /* Stack size of task */
+    600,       /* Stack size of task */
     NULL,        /* parameter of the task */
     2,           /* priority of the task */
     &sensorInputTask,      /* Task handle to keep track of created task */
@@ -212,10 +212,11 @@ void setup() {
   );                        
 }
 
+void loop() { /* Empty Main loop */}
 
 //Task1code: blinks an LED every 1000 ms
 void sensorInputUpdates( void * pvParameters ){
-  Serial.print("Sensor Update Task running on core ");
+  Serial.print(F("Sensor Update Task running on core "));
   Serial.println(xPortGetCoreID());
 
   for(;;){
@@ -312,11 +313,10 @@ void sensorInputUpdates( void * pvParameters ){
   } 
 }
 
-int xOffset = 0;
 float _speed = 0;
 
 void screenUpdates( void * pvParameters ){
-  Serial.print("Screen Update Task running on core ");
+  Serial.print(F("Screen Update Task running on core "));
   Serial.println(xPortGetCoreID());
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
@@ -332,16 +332,17 @@ void screenUpdates( void * pvParameters ){
   // draw mph
   display.setTextSize(1);
   display.setCursor(108,32);
-  display.print("MPH"); 
+  display.print(F("MPH")); 
 
   display.setTextSize(2);
   display.setCursor(50, 42);
-  display.print("NRM");
+  display.print(F("NRM"));
 
-        display.drawBitmap(
-      4,
-      0,
-      lightIcon, lightIconWidth,lightIconHeight, 1);
+  display.drawBitmap(
+    4,
+    0,
+    lightIcon, lightIconWidth,lightIconHeight, 1
+  );
 
   display.drawBitmap(
     8,
@@ -356,13 +357,10 @@ void screenUpdates( void * pvParameters ){
   );
 
   display.drawBitmap(
-    14 + xOffset,
+    14,
     61,
     throttleCursor, throttleCursorWidth, throttleCursorHeight, 1
   );
-
- 
-  
 
   display.display();      // Show initial text
 
@@ -431,48 +429,30 @@ void screenUpdates( void * pvParameters ){
             display.setTextSize(2);
             display.setCursor(4, 24);
             display.print(batteryAverage, 1);
-            display.print("v");
+            display.print(F("v"));
       
             // draw speedo
             display.setTextSize(4);  
             display.setCursor(80, 0);
             display.print(_speed, 0);
-            
-//            display.println(batteryAverage, 1);
-//            
-//            //display.setCursor(24, 50);
-//            display.println(F("v"));
-            delay(100);
             display.display();      // Show initial text
-
-//                Serial.println(UART.data.rpm);
-//                Serial.println(UART.data.inpVoltage);
-//                Serial.println(UART.data.ampHours);
-//                Serial.println(UART.data.tachometerAbs);
-            delay(100);
-
+            delay(10);
      } else {
-      //Serial.println("updating screen");s
-//      display.drawFastHLine(0, 20, 128, SSD1306_WHITE);
-      //display.drawFastHLine(0, 40, 128, SSD1306_WHITE);
+      // Serial.println("updating screen");s
+      // display.drawFastHLine(0, 20, 128, SSD1306_WHITE);
+      // display.drawFastHLine(0, 40, 128, SSD1306_WHITE);
 
-//    Serial.println(UART.data.rpm);
-//    Serial.println(UART.data.inpVoltage);
-//    Serial.println(UART.data.ampHours);
-//    Serial.println(UART.data.tachometerAbs);
+      // Serial.println(UART.data.rpm);
+      // Serial.println(UART.data.inpVoltage);
+      // Serial.println(UART.data.ampHours);
+      // Serial.println(UART.data.tachometerAbs);
 
-//      display.drawBitmap(
-//      42,
-//      0,
-//      stopIcon, stopIconWidth,stopIconHeight, 1);
-
-      delay(200);
+      //  display.drawBitmap(
+      //  42,
+      //  0,
+      //  stopIcon, stopIconWidth,stopIconHeight, 1);
+      delay(100);
      }
- 
  // end display code
   }
 }
-
-
-
-void loop() { /* Empty Main loop */}
