@@ -132,7 +132,10 @@ int readIndex = 0;              // the index of the current reading
 float total = 0;                  // the running total
 float batteryAverage = 0;                // the average
 
-int pwmVal = 0;
+int currIndex = 0; // variable used to draw throttle indicator
+int prevIndex = 0; // variable used to draw throttle indicator
+
+volatile int pwmVal = 0;
 
 /*
 update current throttle value
@@ -255,7 +258,7 @@ void sensorInputUpdates( void * pvParameters ){
         inactiveCount++;
       }
       
-      if(inactiveCount >= 130)
+      if(inactiveCount >= 20)
       {
         revs = 0.f;
         seconds = 1.f;
@@ -275,7 +278,7 @@ void sensorInputUpdates( void * pvParameters ){
        //pwmVal = (int)(466.6667*rps + 833.3334);
        //pwmVal = (int)(178.78*rps - 41.8);
        
-       pwmVal = (int)(130*rps + 60);
+       pwmVal = (int)(120*rps + 60);
     
     //  Serial.print("revs: ");
     //  Serial.print(revs);
@@ -296,7 +299,7 @@ void sensorInputUpdates( void * pvParameters ){
      
       if(engageThrottle)
       {
-          Serial.println(pwmVal);
+          //Serial.println(pwmVal);
 //         Serial.print("rps: ");
 //         Serial.print(rps);
 //         Serial.println();
@@ -305,14 +308,15 @@ void sensorInputUpdates( void * pvParameters ){
       }
       else
       {
-        //Serial.println("throttle disengaged");
+        //Serial.println(0);
         //esc.writeMicroseconds(1300);
-         UART.nunchuck.valueY = 127;
+          pwmVal = 127;
+         UART.nunchuck.valueY = pwmVal;
       }
 
       UART.setNunchuckValues();
       updateCurrTV();
-      delay(45);
+      delay(10);
     
      // end throttle code
   } 
@@ -384,8 +388,37 @@ void screenUpdates( void * pvParameters ){
             // calculate the average:
             batteryAverage = total / numReadings;
 
+            // step 1 access pwm value transform its value from a scale of 0-100
+            // then draw that many throttleCursors in a row
+             //Serial.println(pwmVal);
+            currIndex = (int)(pwmVal*0.787401)-100;
+            Serial.println(currIndex);
+
+            if(currIndex - prevIndex > 0) {
+              //draw from prevIndex to currIndex the normal throttle cursor
+              for(int index = prevIndex; index <= currIndex; ++index) {
+               display.drawBitmap(
+                  14 + index,
+                  61,
+                  throttleCursor, throttleCursorWidth, throttleCursorHeight, 1
+                );
+              }
+            } else if(currIndex - prevIndex < 0) {
+              //draw from currIndex to prevIndex the inverse throttle cursor
+              for(int index = currIndex; index <= prevIndex; ++index) {
+               display.drawBitmap(
+                  14 + index,
+                  61,
+                  throttleCursor, throttleCursorWidth, throttleCursorHeight, 0
+                );
+              }
+            } 
+
+            // update indexs
+            prevIndex = currIndex;
+
             //calculate speed 
-            _speed = UART.data.rpm * 60 * 0.00138193;
+            _speed = UART.data.rpm/10 * 60 * 0.00138193;
 
             // draw voltage
             display.setTextSize(2);
